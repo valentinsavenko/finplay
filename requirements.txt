@@ -1,6 +1,0 @@
-jupyterlab
-jupyter-book
-notebook
-pandas
-seaborn
-matplotlib
