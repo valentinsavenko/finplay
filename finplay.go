@@ -25,6 +25,7 @@ func goldPlay(goldMod goldPriceModifier) (plotter.XYs, plotter.XYs, plotter.XYs,
 	priceOfAssets := make(plotter.XYs, rebuys)
 
 	currentGoldPrice := goldPrice
+	previousGoldPrice := goldPrice
 
 	for i := range goldValues {
 		currentGoldPrice = goldMod(i, currentGoldPrice)
@@ -32,29 +33,32 @@ func goldPlay(goldMod goldPriceModifier) (plotter.XYs, plotter.XYs, plotter.XYs,
 		goldValues[i].X = float64(i)
 		goldValues[i].Y = currentGoldPrice
 
-		ownMoneyInvested[i].X = float64(i)
-		additionalOwnMoney := (currentGoldPrice / 100) * (100 - colletralizedPercentage)
-		if i == 0 {
-			ownMoneyInvested[i].Y = currentGoldPrice
-		} else {
-			ownMoneyInvested[i].Y = ownMoneyInvested[i-1].Y + additionalOwnMoney
+		loanedMoney[i].X = float64(i)
+		var currentMoneyLoan float64 = 0
+		if i != 0 {
+			currentMoneyLoan = (previousGoldPrice / 100) * colletralizedPercentage
+			loanedMoney[i].Y = loanedMoney[i-1].Y + currentMoneyLoan
 		}
 
-		loanedMoney[i].X = float64(i)
-		currentMoneyLoan := (currentGoldPrice / 100) * colletralizedPercentage
+		ownMoneyInvested[i].X = float64(i)
+		additionalOwnMoney := currentGoldPrice - currentMoneyLoan
 		if i == 0 {
-			loanedMoney[i].Y = 0
+			ownMoneyInvested[i].Y = additionalOwnMoney
 		} else {
-			loanedMoney[i].Y = loanedMoney[i-1].Y + currentMoneyLoan
+			ownMoneyInvested[i].Y = ownMoneyInvested[i-1].Y + additionalOwnMoney
 		}
 
 		priceOfAssets[i].X = float64(i)
 		priceOfAssets[i].Y = currentGoldPrice * float64(i)
 
+		previousGoldPrice = currentGoldPrice
 	}
 	return goldValues, ownMoneyInvested, loanedMoney, priceOfAssets
 }
 
+// -----------------------------------------
+// naive gold scenario
+// -----------------------------------------
 func constantPrice(index int, goldPrice float64) float64 {
 	return goldPrice
 }
@@ -63,6 +67,9 @@ func naiveGoldPlay() (plotter.XYs, plotter.XYs, plotter.XYs, plotter.XYs) {
 	return goldPlay(constantPrice)
 }
 
+// -----------------------------------------
+// falling gold price scenario
+// -----------------------------------------
 func fallingPrice(index int, goldPrice float64) float64 {
 	if index < 20 {
 		return goldPrice
@@ -74,7 +81,10 @@ func unluckyGoldPlay() (plotter.XYs, plotter.XYs, plotter.XYs, plotter.XYs) {
 	return goldPlay(fallingPrice)
 }
 
-func raisingPrice(index int, goldPrice float64) float64 {
+// -----------------------------------------
+// increasing gold price scenario
+// -----------------------------------------
+func increasingPrice(index int, goldPrice float64) float64 {
 	if index < 20 {
 		return goldPrice
 	}
@@ -82,9 +92,12 @@ func raisingPrice(index int, goldPrice float64) float64 {
 }
 
 func luckyGoldPlay() (plotter.XYs, plotter.XYs, plotter.XYs, plotter.XYs) {
-	return goldPlay(raisingPrice)
+	return goldPlay(increasingPrice)
 }
 
+// -----------------------------------------
+// swinging (realistic) gold price scenario
+// -----------------------------------------
 func fluctuatingPrice(index int, goldPrice float64) float64 {
 	// based on index, this number functuates between -10 and +10
 	fluctuation10 := 10 * math.Sin(float64(index))
@@ -97,10 +110,10 @@ func fluctuatingGoldPlay() (plotter.XYs, plotter.XYs, plotter.XYs, plotter.XYs) 
 
 func main() {
 
-	plotGoldStrategy(naiveGoldPlay, "testdata/naive_rebuy.png")
-	plotGoldStrategy(unluckyGoldPlay, "testdata/unlucky_rebuy.png")
-	plotGoldStrategy(luckyGoldPlay, "testdata/lucky_rebuy.png")
-	plotGoldStrategy(fluctuatingGoldPlay, "testdata/fluctuating_rebuy.png")
+	plotGoldStrategy(naiveGoldPlay, "plotted_graphs/naive_rebuy.png")
+	plotGoldStrategy(unluckyGoldPlay, "plotted_graphs/unlucky_rebuy.png")
+	plotGoldStrategy(luckyGoldPlay, "plotted_graphs/lucky_rebuy.png")
+	plotGoldStrategy(fluctuatingGoldPlay, "plotted_graphs/fluctuating_rebuy.png")
 
 	// historical gold Data
 	goldPriceData := parseCSV("historical_gold_price.csv")
@@ -110,5 +123,5 @@ func main() {
 	goldTimedLine := getColoredLine(goldPriceData, green)
 	pTimed.Add(goldTimedLine)
 
-	savePlotTo(pTimed, "testdata/timeseries.png")
+	savePlotTo(pTimed, "plotted_graphs/timeseries.png")
 }

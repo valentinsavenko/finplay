@@ -66,16 +66,16 @@ func plotGoldStrategy(playGoldScenario goldScenario, filename string) {
 
 	goldValues, ownMoneyInvested, loanedMoney, priceOfAssets := playGoldScenario()
 	p := getRebuyPlotter()
-	line_gold := getColoredLine(goldValues, gold)
-	line_green := getColoredLine(ownMoneyInvested, green)
-	line_red := getColoredLine(loanedMoney, red)
-	line_blue := getColoredLine(priceOfAssets, blue)
+	lineGold := getColoredLine(goldValues, gold)
+	lineGreen := getColoredLine(ownMoneyInvested, green)
+	lineRed := getColoredLine(loanedMoney, red)
+	lineBlue := getColoredLine(priceOfAssets, blue)
 
-	p.Add(line_gold, line_green, line_red, line_blue)
-	p.Legend.Add("gold price", line_gold)
-	p.Legend.Add("own money invested", line_green)
-	p.Legend.Add("loaned money", line_red)
-	p.Legend.Add("price of all assets", line_blue)
+	p.Add(lineGold, lineGreen, lineRed, lineBlue)
+	p.Legend.Add("gold price", lineGold)
+	p.Legend.Add("own money invested", lineGreen)
+	p.Legend.Add("loaned money", lineRed)
+	p.Legend.Add("price of all assets", lineBlue)
 	p.Legend.Top = true
 	p.Legend.Left = true
 

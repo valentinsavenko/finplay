@@ -1,26 +1,51 @@
+Technical readme is [here](CONTRIBUTING.md)
 
-* virtualenv: https://virtualenv.pypa.io/en/stable/
-* Virtualenv: https://virtualenv.pypa.io/en/latest/installation/
-```bash
-# MacOS
-brew upgrade python
+# Why finplay?
 
-virtualenv .venv --python=/usr/local/opt/python@3.8/bin/python3
-source .venv/bin/activate
-pip3 install -r requirements.txt
+I was overhelmed by thinking through all possible scenarios of using [gold as colletaral](https://www.sunshineprofits.com/gold-silver/dictionary/gold-collateral/) in investments and decided to learn a bit of Go.
 
-pip3 install --upgrade pip
-pip3 install jupyter
+# Scenarios
+My first ideas where using plotting libraries to answer the questions I had:
+What happens when I buy more and more coins and: 
+- the price stays the same 
+![just linear winning](plotted_graphs/naive_rebuy.png)
+- the price sinks after a while
+![so much fail](plotted_graphs/unlucky_rebuy.png)
+- the price increased after a while
+![nice winning](plotted_graphs/lucky_rebuy.png)
+- the price is realistic (whatever that means)
+![still winning](plotted_graphs/fluctuating_rebuy.png)
+
+## TODO:
+- find and plot historical gold price :heavy_check_mark:
+![get rich slow](plotted_graphs/timeseries.png)
+- use historical gold price data to create scenarios based on real data 
+
+# How ?
+I assume some random gold price and just buy 100 coins in equal intervals.
+The 'bank' is super generous and gives me a loan for each, already owned, gold coin of 80% to buy the next one!
+```go
+const (
+	goldPrice               = 1500.0 // dollar
+	colletralizedPercentage = 80.0
+	rebuys                  = 100 // times you'll rebuy another gold coin
+)
+
+func goldPlay(goldMod goldPriceModifier) (plotter.XYs, plotter.XYs, plotter.XYs, plotter.XYs) {
+
+	goldValues := make(plotter.XYs, rebuys)
+	ownMoneyInvested := make(plotter.XYs, rebuys)
+	loanedMoney := make(plotter.XYs, rebuys)
+	priceOfAssets := make(plotter.XYs, rebuys)
+
+	currentGoldPrice := goldPrice
+	previousGoldPrice := goldPrice
 ```
+I keep track of gold price, total money invested, total bank loans and asset price based on the price at the time of buying. 
 
-
+`currentGoldPrice` is adjusted based on the modifier function that is passed to `goldPlay(fn)` 
+```go
+currentGoldPrice = goldMod(i, currentGoldPrice)
 ```
-env GO111MODULE=on go get github.com/gopherdata/gophernotes
-mkdir -p ~/Library/Jupyter/kernels/gophernotes
-cd ~/Library/Jupyter/kernels/gophernotes
-cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.0/kernel/*  "."
-chmod +w ./kernel.json # in case copied kernel.json has no write permission
-sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
-```
-
-`jupyter notebook`
+The scenarios above are all variations of goldPlay with different modifiers.
+See the [here](finplay.go#L59)
